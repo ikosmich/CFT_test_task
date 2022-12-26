@@ -29,17 +29,22 @@ class TableViewController: UITableViewController {
         }
     }
     
-    // Creating new note with (+) bar button
-    @IBAction func toEditScreen(_ sender: UIBarButtonItem) {
+    // Initialisation of textField text string on EditingViewController, push to EditingViewController. Using closure for data transfer between controllers
+    private func prepairForEditScreen(_ text: String, _ handlerClosure: @escaping (String)->Void) {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let editScreen = storyboard.instantiateViewController(withIdentifier: "editScreen") as! EditingViewController
-        editScreen.updatingNoteText = ""
-        editScreen.completionHandler = { [unowned self] value in
-            notes.insert(Note(title: value), at: 0)
-        }
+        editScreen.updatingNoteText = text
+        editScreen.completionHandler = handlerClosure
         navigationController?.pushViewController(editScreen, animated: true)
     }
     
+    // Creating new note with (+) bar button
+    @IBAction func toEditScreen(_ sender: UIBarButtonItem) {
+        prepairForEditScreen("") { [unowned self] value in
+            notes.insert(Note(title: value), at: 0)
+        }
+    }
+        
     // MARK: - Table view data source
     
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -62,19 +67,14 @@ class TableViewController: UITableViewController {
         return cell
     }
 
-
-
-    // Edit note text by touching note in list. Going to EditingViewController. Using closure for data transfer between controllers
+    // Edit note text by touching note in list.
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let editScreen = storyboard.instantiateViewController(withIdentifier: "editScreen") as! EditingViewController
-        editScreen.updatingNoteText = notes[indexPath.row].title
-        editScreen.completionHandler = { [unowned self] value in
+        tableView.deselectRow(at: indexPath, animated: true)
+        prepairForEditScreen(notes[indexPath.row].title) { [unowned self] value in
             notes[indexPath.row].title = value
         }
-        tableView.deselectRow(at: indexPath, animated: true)
-        navigationController?.pushViewController(editScreen, animated: true)
     }
+    
     // Deleting note from list
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
